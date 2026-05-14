@@ -1083,6 +1083,21 @@
   const opener = document.getElementById('opener');
   const openerVideo = document.getElementById('opener-video');
   let openerDone = false;
+
+  // Show first decoded frame while paused (many browsers stay black until a seek).
+  (function primeOpenerFirstFrame(){
+    const v = openerVideo;
+    function paint(){
+      v.pause();
+      v.addEventListener('seeked', () => {
+        try { v.currentTime = 0; } catch (_) {}
+        v.pause();
+      }, { once: true });
+      try { v.currentTime = 0.001; } catch (_) {}
+    }
+    if (v.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) paint();
+    else v.addEventListener('loadeddata', paint, { once: true });
+  })();
   function finishOpener(){
     if (openerDone) return;
     openerDone = true;
@@ -1103,6 +1118,7 @@
     openerVideo.dataset.started = '1';
     openerVideo.muted = true;
     openerVideo.playsInline = true;
+    try { openerVideo.currentTime = 0; } catch (_) {}
     const p = openerVideo.play();
     if (p && p.catch) p.catch(()=> finishOpener());
   }
