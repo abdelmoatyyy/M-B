@@ -970,6 +970,8 @@
     requestAnimationFrame(step);
   }
   let musicStartedOnce = false;
+  /** True if we paused only because the page went to the background (user still wants music on). */
+  let musicPauseDueToBackground = false;
   function startMusic(){
     const p = music.play();
     const onSuccess = () => {
@@ -1160,7 +1162,20 @@
     window.addEventListener(ev, kickVideos, { once:true, passive:true })
   );
   document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) kickVideos();
+    if (!document.hidden){
+      kickVideos();
+      if (musicPauseDueToBackground && music && musicBtn && !musicBtn.classList.contains('muted') && openerDone){
+        musicPauseDueToBackground = false;
+        music.play().then(() => fadeVolume(0.6, 500)).catch(() => {});
+      }
+      return;
+    }
+    if (music && !music.paused && musicBtn && !musicBtn.classList.contains('muted')){
+      musicPauseDueToBackground = true;
+      music.pause();
+    } else {
+      musicPauseDueToBackground = false;
+    }
   });
 </script>
 
