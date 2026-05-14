@@ -1121,7 +1121,8 @@
     startMusic();
     // re-evaluate reveals now that content is visible
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
-    scheduleAutoScrollToInvite(1100, 0);
+    /* Let the hero (names, verse, date) stay on screen before scrolling to details */
+    scheduleAutoScrollToInvite(3000, 0);
   }
   function startOpener(){
     if (openerVideo.dataset.started === '1') return;
