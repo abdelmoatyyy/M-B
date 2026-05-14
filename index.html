@@ -834,7 +834,7 @@
   </section>
 
   <!-- COUNTDOWN -->
-  <section class="section reveal" data-screen-label="Countdown">
+  <section class="section reveal" id="invitation-start" data-screen-label="Countdown">
     <div class="countdown-label reveal delay-1">COUNTING DOWN</div>
     <div class="countdown reveal delay-2" id="countdown">
       <div class="cd-cell"><div class="cd-num" id="cd-d">246</div><div class="cd-lbl">days</div></div>
@@ -930,6 +930,30 @@
     });
   }, { threshold: 0.15, rootMargin: '0px 0px -8% 0px' });
   document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+
+  // ===== Auto-scroll to invitation (once, after opener — replaces scroll hints) =====
+  const inviteStartEl = document.getElementById('invitation-start');
+  const reduceMotionScroll = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let autoScrollToInviteDone = false;
+  function scrollToInviteStart(){
+    if (!inviteStartEl || autoScrollToInviteDone) return;
+    autoScrollToInviteDone = true;
+    const behavior = reduceMotionScroll ? 'auto' : 'smooth';
+    inviteStartEl.scrollIntoView({ behavior, block: 'start' });
+  }
+  function scheduleAutoScrollToInvite(delayMs, anchorY){
+    if (!inviteStartEl || autoScrollToInviteDone) return;
+    const y0 = typeof anchorY === 'number' ? anchorY : (window.scrollY || document.documentElement.scrollTop);
+    setTimeout(() => {
+      if (autoScrollToInviteDone) return;
+      const y1 = window.scrollY || document.documentElement.scrollTop;
+      if (y1 > y0 + 48){
+        autoScrollToInviteDone = true;
+        return;
+      }
+      scrollToInviteStart();
+    }, delayMs);
+  }
 
   // ===== Background music =====
   const music = document.getElementById('bg-music');
@@ -1097,6 +1121,7 @@
     startMusic();
     // re-evaluate reveals now that content is visible
     document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+    scheduleAutoScrollToInvite(1100, 0);
   }
   function startOpener(){
     if (openerVideo.dataset.started === '1') return;
